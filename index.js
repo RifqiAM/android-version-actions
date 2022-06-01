@@ -8,9 +8,13 @@ const versionCodeRegexPattern = /(versionCode(?:\s|=)*)(.*)/;
 const versionNameRegexPattern = /(versionName(?:\s|=)*)(.*)/;
 
 try {
+    const now = Math.floor(new Date().getTime()/1000.0);
+    const offset = Math.floor(new Date("2020-01-01").getTime()/1000.0);
+    
     const gradlePath = core.getInput('gradlePath');
-    const versionCode = core.getInput('versionCode');
-    const versionName = core.getInput('versionName');
+    const versionCode = (now - offset).toString();
+    const versionName = `${core.getInput('versionName')}-b${versionCode}`;
+    
     console.log(`Gradle Path : ${gradlePath}`);
     console.log(`Version Code : ${versionCode}`);
     console.log(`Version Name : ${versionName}`);
