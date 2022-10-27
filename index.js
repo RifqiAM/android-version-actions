@@ -6,23 +6,27 @@ const fs = require('fs');
 const versionCodeRegexPattern = /(versionCode(?:\s|=)*)(.*)/;
 // versionName — A string used as the version number shown to users [...] -> https://developer.android.com/studio/publish/versioning
 const versionNameRegexPattern = /(versionName(?:\s|=)*)(.*)/;
+const projectVersionRegexPattern = /(CURRENT_PROJECT_VERSION(?:\s|=)*)(.*);/;
 
 try {
-    const gradlePath = core.getInput('gradlePath');
-    const versionCode = Math.floor(new Date().getTime()/1000.0/60.0).toString();
-    const versionName = `${core.getInput('versionName')}-b${versionCode}`;
+    const filePath = core.getInput('filePath');
+    const versionCode = (parseInt(core.getInput('initialVersionCode')) + parseInt(github.context.runNumber)).toString()
+    const versionName = core.getInput('versionName')
+    const buildName = `${core.getInput('versionName')}-b${versionCode}`;
     
-    console.log(`Gradle Path : ${gradlePath}`);
+    console.log(`File Path : ${filePath}`);
     console.log(`Version Code : ${versionCode}`);
     console.log(`Version Name : ${versionName}`);
+    console.log(`Build Name : ${buildName}`);
 
-    fs.readFile(gradlePath, 'utf8', function (err, data) {
-        newGradle = data;
+    fs.readFile(filePath, 'utf8', function (err, data) {
+        let newFile = data;
         if (versionCode.length > 0)
-            newGradle = newGradle.replace(versionCodeRegexPattern, `$1${versionCode}`);
+            newFile = newFile.replace(versionCodeRegexPattern, `$1${versionCode}`);
+            newFile = newFile.replace(projectVersionRegexPattern, `$1${versionCode}`);
         if (versionName.length > 0)
-            newGradle = newGradle.replace(versionNameRegexPattern, `$1\"${versionName}\"`);
-        fs.writeFile(gradlePath, newGradle, function (err) {
+            newFile = newFile.replace(versionNameRegexPattern, `$1\"${versionName}\"`);
+        fs.writeFile(filePath, newFile, function (err) {
             if (err) throw err;
             if (versionCode.length > 0)
                 console.log(`Successfully override version code ${versionCode}`)
